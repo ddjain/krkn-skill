@@ -1,0 +1,46 @@
+{
+  "name": "krkn-chaos-knowledgebase",
+  "version": "1.0.0",
+  "description": "Dataset store for Krkn chaos engineering scenario generation skill",
+  "knowledge_base_root": "../knowledge-base",
+  "index": "../knowledge-base/index.json",
+  "schemas": {
+    "common": "../knowledge-base/schemas/common.schema.json",
+    "krknctl": "../knowledge-base/schemas/krknctl.schema.json",
+    "krknhub": "../knowledge-base/schemas/krknhub.schema.json",
+    "global_parameters": "../knowledge-base/schemas/global-parameters.json"
+  },
+  "scenarios": {
+    "pod-scenarios": "../knowledge-base/scenarios/pod-scenarios.json",
+    "container-scenarios": "../knowledge-base/scenarios/container-scenarios.json",
+    "node-scenarios": "../knowledge-base/scenarios/node-scenarios.json",
+    "node-scenarios-bm": "../knowledge-base/scenarios/node-scenarios-bm.json",
+    "node-cpu-hog": "../knowledge-base/scenarios/node-cpu-hog.json",
+    "node-memory-hog": "../knowledge-base/scenarios/node-memory-hog.json",
+    "node-io-hog": "../knowledge-base/scenarios/node-io-hog.json",
+    "network-chaos": "../knowledge-base/scenarios/network-chaos.json",
+    "pod-network-chaos": "../knowledge-base/scenarios/pod-network-chaos.json",
+    "node-network-filter": "../knowledge-base/scenarios/node-network-filter.json",
+    "pod-network-filter": "../knowledge-base/scenarios/pod-network-filter.json",
+    "syn-flood": "../knowledge-base/scenarios/syn-flood.json",
+    "time-scenarios": "../knowledge-base/scenarios/time-scenarios.json",
+    "application-outages": "../knowledge-base/scenarios/application-outages.json",
+    "service-disruption-scenarios": "../knowledge-base/scenarios/service-disruption-scenarios.json",
+    "service-hijacking": "../knowledge-base/scenarios/service-hijacking.json",
+    "pvc-scenarios": "../knowledge-base/scenarios/pvc-scenarios.json",
+    "power-outages": "../knowledge-base/scenarios/power-outages.json",
+    "zone-outages": "../knowledge-base/scenarios/zone-outages.json",
+    "kubevirt-outage": "../knowledge-base/scenarios/kubevirt-outage.json"
+  },
+  "categories": {
+    "pod": ["pod-scenarios", "container-scenarios"],
+    "node": ["node-scenarios", "node-scenarios-bm", "node-cpu-hog", "node-memory-hog", "node-io-hog"],
+    "network": ["network-chaos", "pod-network-chaos", "node-network-filter", "pod-network-filter", "syn-flood"],
+    "time": ["time-scenarios"],
+    "application": ["application-outages"],
+    "service": ["service-disruption-scenarios", "service-hijacking"],
+    "storage": ["pvc-scenarios"],
+    "cluster": ["power-outages", "zone-outages"],
+    "virtualization": ["kubevirt-outage"]
+  }
+}
