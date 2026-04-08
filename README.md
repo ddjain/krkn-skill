@@ -24,33 +24,34 @@ All generated from the authoritative knowledge base -- no hallucinated flags or 
 
 ## Installation
 
-### Option 1: Add to a specific project
+```bash
+npx skills add ddjain/krkn
+```
 
-1. Download `skill.md` into your project:
+That's it. The skill is now available in your Claude Code sessions. Start using it:
 
-   ```bash
-   mkdir -p .claude/skills
-   curl -o .claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/skill.md
-   ```
+```
+/krkn-scenario kill pods in namespace kube-system
+```
 
-2. Open Claude Code in your project and use it:
+<details>
+<summary>Alternative installation methods</summary>
 
-   ```
-   /krkn-scenario kill pods in namespace kube-system
-   ```
+### Download to a specific project
 
-### Option 2: Global installation (available in all projects)
+```bash
+mkdir -p .claude/skills
+curl -o .claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/SKILL.md
+```
 
-1. Download the skill:
+### Global installation (available in all projects)
 
-   ```bash
-   mkdir -p ~/.claude/skills
-   curl -o ~/.claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/skill.md
-   ```
+```bash
+mkdir -p ~/.claude/skills
+curl -o ~/.claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/SKILL.md
+```
 
-2. The skill will be available in every Claude Code session.
-
-### Option 3: Clone this repo
+### Clone this repo
 
 ```bash
 git clone https://github.com/ddjain/krkn-skill.git
@@ -62,11 +63,13 @@ Then register in your project's `.claude/settings.local.json`:
 {
   "skills": {
     "krkn-scenario": {
-      "path": "/path/to/krkn-skill/skill.md"
+      "path": "/path/to/krkn-skill/SKILL.md"
     }
   }
 }
 ```
+
+</details>
 
 ## How it Works
 
@@ -94,8 +97,11 @@ Then register in your project's `.claude/settings.local.json`:
 The skill auto-pulls the latest knowledge base on every use. To update the skill itself:
 
 ```bash
+# If installed via npx skills
+npx skills add ddjain/krkn
+
 # If installed via curl
-curl -o ~/.claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/skill.md
+curl -o ~/.claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/SKILL.md
 
 # If cloned
 git -C /path/to/krkn-skill pull
