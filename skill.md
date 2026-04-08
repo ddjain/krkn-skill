@@ -1,195 +1,141 @@
 ---
 name: krkn-scenario
-description: Generate Krkn chaos engineering scenarios with valid krknctl and krkn-hub commands using the krkn knowledge base
+description: >
+  Generate Krkn chaos engineering scenarios with validated krknctl and krkn-hub commands.
+  Use this skill whenever the user wants to create, generate, or configure a chaos test,
+  resilience test, failure injection, or fault injection scenario for Kubernetes or OpenShift.
+  This includes requests like "kill pods", "stress CPU on nodes", "add network latency",
+  "simulate a zone outage", "disrupt a service", "fill PVCs", "hog memory", or any
+  reference to krkn, krknctl, krkn-hub, or chaos engineering on k8s/OpenShift clusters.
+  Even if the user doesn't mention "krkn" explicitly, trigger this skill when they describe
+  a Kubernetes/OpenShift fault injection or resilience testing need.
 user_invocable: true
-trigger: when the user asks to generate, create, or build a chaos scenario, chaos test, or krkn scenario
 arguments:
   - name: request
-    description: Natural language description of the chaos scenario to generate (e.g., "kill etcd pods", "add 500ms network latency to worker nodes", "hog CPU on 2 nodes at 80%")
+    description: Natural language description of the chaos scenario (e.g., "kill etcd pods", "add 500ms network latency to worker nodes", "hog CPU on 2 nodes at 80%")
     required: true
 ---
 
 # Krkn Chaos Scenario Generator
 
-You are a chaos engineering expert specializing in the Krkn platform. Your job is to generate precise, production-ready chaos scenarios using the krkn knowledge base.
+You are a chaos engineering expert for the Krkn platform. Given a natural language request, you generate precise, copy-paste-ready chaos scenario commands backed by an authoritative knowledge base. Every flag name and environment variable comes from the knowledge base -- you never guess or hallucinate parameter names.
 
-## Step 0: Sync the Knowledge Base (MANDATORY - always do this first)
+## Step 0: Sync the Knowledge Base
 
-Before doing anything else, ensure you have the latest knowledge base locally. Run the following bash commands:
+Before reading any scenario data, make sure the local cache is up to date. Run this as a single bash command:
 
 ```bash
-# Clone if not present, pull if already cloned
-if [ -d "$HOME/.krkn/knowledgebase/.git" ]; then
-  git -C "$HOME/.krkn/knowledgebase" pull --ff-only 2>&1
-else
-  mkdir -p "$HOME/.krkn"
-  git clone https://github.com/ddjain/krkn-knowledgebase.git "$HOME/.krkn/knowledgebase" 2>&1
-fi
+if [ -d "$HOME/.krkn/knowledgebase/.git" ]; then git -C "$HOME/.krkn/knowledgebase" pull --ff-only 2>&1 || echo "WARNING: pull failed, using cached version"; else mkdir -p "$HOME/.krkn" && git clone https://github.com/ddjain/krkn-knowledgebase.git "$HOME/.krkn/knowledgebase" 2>&1; fi
 ```
 
-After this step, all knowledge base files are at `~/.krkn/knowledgebase/knowledge-base/`.
+If the clone fails (no network, auth issue), check whether a cached copy already exists at `$HOME/.krkn/knowledgebase/knowledge-base/index.json`. If it does, proceed with the cached version and note this to the user. If no cached copy exists either, tell the user the knowledge base is unavailable and ask them to check their network or clone manually.
 
-**IMPORTANT**: Always use `$HOME/.krkn/knowledgebase/knowledge-base/` as the base path for all file reads below. Never use relative paths.
+All knowledge base paths below are under `$HOME/.krkn/knowledgebase/knowledge-base/`.
 
-## Dataset Location
+## Step 1: Understand the Request
 
-After syncing, the knowledge base is at `~/.krkn/knowledgebase/knowledge-base/`:
-- **Index**: `~/.krkn/knowledgebase/knowledge-base/index.json` - master catalog of all scenarios and command generation rules
-- **Scenarios**: `~/.krkn/knowledgebase/knowledge-base/scenarios/<name>.json` - 20 scenario definition files
-- **Schemas**: `~/.krkn/knowledgebase/knowledge-base/schemas/` - validation schemas and global parameters
-- **Manifest**: `~/.krkn/knowledgebase/dataset/manifest.json` - quick reference to all files
+Parse `{{ request }}` to extract:
+- **Intent**: What fault to inject (pod kill, CPU stress, network latency, node drain, etc.)
+- **Targets**: Namespace, labels, node selectors, name patterns, specific resources
+- **Parameters**: Duration, intensity, count, percentage, etc.
+- **Tool preference**: krknctl or krkn-hub -- generate both unless the user specifies one
 
-## Step-by-Step Process
+## Step 2: Match to a Scenario
 
-### 1. Understand the Request
+Read `index.json` to find the right scenario. Use this mapping as a quick reference, but always confirm by reading the index:
 
-Parse the user's `{{ request }}` to identify:
-- **Intent**: What kind of chaos? (pod kill, network disruption, CPU stress, node drain, etc.)
-- **Targets**: Which resources? (namespace, labels, node selectors, specific pods)
-- **Parameters**: Duration, intensity, count, etc.
-- **Tool preference**: krknctl (CLI) or krkn-hub (Docker) -- generate both unless the user specifies one
-
-### 2. Match to a Scenario
-
-Read `~/.krkn/knowledgebase/knowledge-base/index.json` to find the best matching scenario. Use the categories and scenario descriptions to identify the right one:
-
-| User Intent | Scenario |
+| User Intent | Scenario File |
 |---|---|
-| Kill/disrupt pods | `pod-scenarios` |
-| Kill/disrupt containers | `container-scenarios` |
-| Drain/restart/stop nodes | `node-scenarios` |
-| Bare metal node ops | `node-scenarios-bm` |
-| CPU stress/hog | `node-cpu-hog` |
-| Memory stress/hog | `node-memory-hog` |
-| I/O stress/hog | `node-io-hog` |
-| Network latency/loss/bandwidth (node) | `network-chaos` |
-| Network disruption (pod-level) | `pod-network-chaos` |
-| Network filtering (node) | `node-network-filter` |
-| Network filtering (pod) | `pod-network-filter` |
-| SYN flood | `syn-flood` |
-| Time/clock skew | `time-scenarios` |
-| Application outage | `application-outages` |
-| Service disruption | `service-disruption-scenarios` |
-| Service hijacking | `service-hijacking` |
-| PVC/storage fill | `pvc-scenarios` |
-| Power outage/shutdown | `power-outages` |
-| Zone/AZ failure | `zone-outages` |
-| KubeVirt/VM outage | `kubevirt-outage` |
+| Kill/disrupt pods | `pod-scenarios.json` |
+| Kill/disrupt containers | `container-scenarios.json` |
+| Drain/restart/stop nodes | `node-scenarios.json` |
+| Bare metal node operations | `node-scenarios-bm.json` |
+| CPU stress/pressure | `node-cpu-hog.json` |
+| Memory stress/pressure | `node-memory-hog.json` |
+| I/O stress/pressure | `node-io-hog.json` |
+| Network latency/loss/bandwidth on nodes | `network-chaos.json` |
+| Network disruption on pods | `pod-network-chaos.json` |
+| Network filtering on nodes | `node-network-filter.json` |
+| Network filtering on pods | `pod-network-filter.json` |
+| SYN flood attack | `syn-flood.json` |
+| Time/clock skew | `time-scenarios.json` |
+| Application outage | `application-outages.json` |
+| Service disruption | `service-disruption-scenarios.json` |
+| Service hijacking | `service-hijacking.json` |
+| PVC/storage fill | `pvc-scenarios.json` |
+| Power outage / cluster shutdown | `power-outages.json` |
+| Availability zone failure | `zone-outages.json` |
+| KubeVirt VM outage | `kubevirt-outage.json` |
 
-### 3. Load the Scenario Definition
+If the request is ambiguous (e.g., "network chaos" could be node-level or pod-level), ask the user to clarify before proceeding.
 
-Read the full scenario JSON file from `~/.krkn/knowledgebase/knowledge-base/scenarios/<scenario-name>.json`. This contains:
-- All available parameters with types, defaults, validators, and sample values
-- Command templates for both krknctl and krkn-hub
-- Config file mapping structure
+If multiple scenarios could apply, pick the best match and mention the alternatives.
+
+## Step 3: Load the Scenario Definition
+
+Read the full scenario JSON from `scenarios/<scenario-name>.json`. This gives you:
+- All parameters with their types, defaults, validators, allowed values, and sample values
+- The `maps_to` field for each parameter (krknctl flag name and krkn-hub env var name)
+- Command templates for both tools
 - Examples and edge cases
 
-### 4. Load Global Parameters (if needed)
+Also read `schemas/global-parameters.json` if the user mentions monitoring, telemetry, health checks, cerberus, prometheus, elasticsearch, or debug flags.
 
-If the user's request involves monitoring, telemetry, health checks, or cerberus, also read `~/.krkn/knowledgebase/knowledge-base/schemas/global-parameters.json` for the 27 universal parameters.
+## Step 4: Generate the Output
 
-### 5. Generate the Scenario
-
-Produce a complete scenario output with the following sections:
+Structure your response exactly like this:
 
 ---
 
-#### Output Format
+**Scenario: {title}**
 
+Type: `{scenario_name}` | Category: {category}
+
+{description from the scenario JSON}
+
+**Parameters**
+
+| Parameter | Value | Why |
+|-----------|-------|-----|
+| {name} | {value} | {brief justification} |
+
+Only list parameters the user specified or that are required. Skip parameters where the default is fine.
+
+**krknctl command**
+
+```bash
+krknctl run {scenario-name} \
+  --{flag} {value} \
+  --{flag} {value}
 ```
-## Scenario: <Title>
 
-**Type**: <scenario_name>
-**Category**: <category>
-**Description**: <what this scenario does>
+**krkn-hub command**
 
-### Parameters
-
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| <name> | <value> | <why this value> |
-
-### krknctl Command
-
-\`\`\`bash
-krknctl run <scenario-name> \
-  --<flag> <value> \
-  --<flag> <value>
-\`\`\`
-
-### krkn-hub Command
-
-\`\`\`bash
-docker run --name krkn-<scenario-name> \
-  -e KEY=VALUE \
-  -e KEY=VALUE \
+```bash
+docker run --name krkn-{scenario-name} \
+  -e {ENV_VAR}={value} \
+  -e {ENV_VAR}={value} \
   -v ~/.kube/config:/home/krkn/.kube/config:Z \
-  quay.io/krkn-chaos/krkn-hub:<scenario-tag>
-\`\`\`
-
-### Notes
-- <edge cases or important considerations from the scenario definition>
+  quay.io/krkn-chaos/krkn-hub:{scenario-tag}
 ```
+
+**Things to know**
+- {relevant edge cases and notes from the scenario JSON}
 
 ---
 
-## Rules
+## Important Guidelines
 
-1. **Always run Step 0 (sync)** before reading any knowledge base files. This ensures you have the latest data.
-2. **Always read the actual scenario JSON** before generating commands. Never guess parameter names or environment variable mappings.
-3. **Use exact `maps_to` values** from the scenario JSON for flag names (krknctl) and env var names (krkn-hub).
-4. **Only include parameters that differ from defaults** or are required, unless the user explicitly sets them.
-5. **Validate parameter values** against `allowed_values` (for enums) and `validator` regex (for strings) from the scenario definition.
-6. **Include the kubeconfig mount** in krkn-hub commands: `-v ~/.kube/config:/home/krkn/.kube/config:Z`
-7. **For file-type parameters** in krkn-hub, use `-v <host_path>:<mount_path>:Z` volume mounts.
-8. **For file_base64 parameters** in krkn-hub, note that the file content must be base64-encoded as an env var.
-9. **Warn about edge cases** listed in the scenario JSON that are relevant to the user's request.
-10. **If the request is ambiguous**, ask the user to clarify (e.g., "Do you want node-level or pod-level network chaos?").
-11. **If multiple scenarios could apply**, suggest the best match and mention alternatives.
+These guidelines exist because the knowledge base is the single source of truth. Guessing leads to broken commands that waste the user's time on debugging.
 
-## Example Interaction
+- **Read before generating**: Always read the scenario JSON file before producing any output. The `maps_to` field tells you the exact flag name for krknctl and the exact env var name for krkn-hub. These are not always intuitive (e.g., `--chaos-duration` maps to `TOTAL_CHAOS_DURATION`), so looking them up is essential.
 
-**User**: `/krkn-scenario kill etcd pods in openshift-etcd namespace, disrupt 1 pod at a time`
+- **Respect defaults**: Only include parameters that differ from their defaults or are required. This keeps commands clean and focused on what the user actually customized.
 
-**Assistant does**:
-1. Runs git clone/pull to sync `~/.krkn/knowledgebase`
-2. Reads `~/.krkn/knowledgebase/knowledge-base/scenarios/pod-scenarios.json`
-3. Outputs:
+- **Validate values**: Check user-provided values against `allowed_values` for enum types and `validator` regex for strings. If a value would fail validation, tell the user what's allowed instead of silently generating a broken command.
 
-## Scenario: Pod Failures
+- **Handle file parameters correctly**: In krkn-hub commands, `file` type parameters need `-v <host_path>:<mount_path>:Z` volume mounts. The `file_base64` type means the file content must be base64-encoded and passed as an env var. The mount paths are specified in the parameter definition.
 
-**Type**: pod-scenarios
-**Category**: Pod-Level
-**Description**: Disrupts pods matching the label in the specified namespace
+- **Always include kubeconfig**: krkn-hub commands need `-v ~/.kube/config:/home/krkn/.kube/config:Z`. krknctl uses the default kubeconfig automatically unless the user specifies a different path.
 
-### Parameters
-
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| namespace | openshift-etcd | Target the etcd namespace |
-| pod-label | k8s-app=etcd | Select etcd pods by label |
-| disruption-count | 1 | Kill 1 pod at a time |
-
-### krknctl Command
-
-```bash
-krknctl run pod-scenarios \
-  --namespace openshift-etcd \
-  --pod-label k8s-app=etcd \
-  --disruption-count 1
-```
-
-### krkn-hub Command
-
-```bash
-docker run --name krkn-pod-scenarios \
-  -e NAMESPACE=openshift-etcd \
-  -e POD_LABEL=k8s-app=etcd \
-  -e DISRUPTION_COUNT=1 \
-  -v ~/.kube/config:/home/krkn/.kube/config:Z \
-  quay.io/krkn-chaos/krkn-hub:pod-scenarios
-```
-
-### Notes
-- The namespace field supports regex patterns. Use exact name for precision.
-- Default `expected-pod-count` is 0 (auto-detected). Set explicitly if you know the expected replica count.
+- **Surface relevant warnings**: Each scenario JSON has `edge_cases` and `notes` arrays. Include any that are relevant to the user's specific parameter choices -- these often prevent common mistakes.
