@@ -34,11 +34,13 @@ All knowledge base paths below are under `$HOME/.krkn/knowledgebase/knowledge-ba
 
 ## Step 1: Understand the Request
 
-Parse `{{ request }}` to extract:
+Parse `{{ request }}` to extract what the user has provided:
 - **Intent**: What fault to inject (pod kill, CPU stress, network latency, node drain, etc.)
 - **Targets**: Namespace, labels, node selectors, name patterns, specific resources
 - **Parameters**: Duration, intensity, count, percentage, etc.
 - **Tool preference**: krknctl or krkn-hub -- generate both unless the user specifies one
+
+Make note of what was explicitly provided and what was left unspecified. You will need this in Step 3.
 
 ## Step 2: Match to a Scenario
 
@@ -81,7 +83,37 @@ Read the full scenario JSON from `scenarios/<scenario-name>.json`. This gives yo
 
 Also read `schemas/global-parameters.json` if the user mentions monitoring, telemetry, health checks, cerberus, prometheus, elasticsearch, or debug flags.
 
-## Step 4: Generate the Output
+## Step 4: Gather Missing Parameters — Ask Before You Generate
+
+Before generating any commands, compare what the user provided (Step 1) against what the scenario definition requires (Step 3). Classify every parameter into one of three buckets:
+
+1. **Required and missing**: Parameters marked as required in the scenario JSON that the user did not provide. You must ask for these — never assume or fill in defaults for required parameters.
+
+2. **Optional but important**: Parameters that have defaults but where the default could be risky, surprising, or unlikely to match the user's intent. Use your judgment here — consider:
+   - Would the default cause broader blast radius than the user probably wants? (e.g., `namespace` defaulting to all namespaces, `kill_count` defaulting to a high number)
+   - Is this a parameter where a wrong default could be destructive or hard to reverse? (e.g., `force` flags, `cloud_type` for node scenarios)
+   - Does the user's description imply a specific value that differs from the default? (e.g., they said "worker nodes" but the default targets all nodes)
+   - Is the parameter one that most users would want to customize for their environment? (e.g., `label_selector`, `node_selector`)
+
+3. **Optional and fine to skip**: Parameters where the default is safe and sensible for the user's described scenario. Do not ask about these — just use the defaults silently.
+
+**How to ask**: Present the questions in a single, organized message. Group required parameters first, then optional-but-important ones. For each parameter, explain briefly what it controls and why you're asking:
+
+Example:
+> Before I generate the commands, I need a few details:
+>
+> **Required:**
+> - **Namespace**: Which namespace are the target pods in? (e.g., `openshift-etcd`, `default`)
+>
+> **Recommended to specify (optional but important):**
+> - **Label selector**: Do you want to target specific pods by label? Without this, all pods in the namespace are eligible.
+> - **Kill count**: How many pods should be killed per iteration? Default is 1.
+>
+> Let me know and I'll generate the commands.
+
+Wait for the user's response before proceeding to Step 5. If the user says "just use defaults" or similar, proceed with defaults but note what you assumed in the output.
+
+## Step 5: Generate the Output
 
 Structure your response exactly like this:
 
@@ -103,13 +135,17 @@ Only list parameters the user specified or that are required. Skip parameters wh
 
 **krknctl command**
 
+> {Plain-English description of what this command will do — e.g., "This will kill 1 pod matching label `app=etcd` in the `openshift-etcd` namespace, wait 60 seconds, and repeat for 2 iterations."}
+
 ```bash
 krknctl run {scenario-name} \
   --{flag} {value} \
   --{flag} {value}
 ```
 
-**krkn-hub command**
+**krkn-hub (Docker) command**
+
+> {Plain-English description of what this command will do — same as above, tailored to the docker context if needed.}
 
 ```bash
 docker run --name krkn-{scenario-name} \
@@ -121,6 +157,17 @@ docker run --name krkn-{scenario-name} \
 
 **Things to know**
 - {relevant edge cases and notes from the scenario JSON}
+
+**Suggestions** *(if any)*
+
+If you see ways to improve the scenario based on the user's intent, mention them here. This could include:
+- A more targeted label selector to avoid collateral damage
+- Adding cerberus/monitoring for production-like runs
+- Adjusting duration or intensity for the user's stated goal (e.g., shorter for smoke tests, longer for resilience validation)
+- Alternative scenarios that might better fit the user's intent
+- Safety recommendations (e.g., running in a staging namespace first)
+
+Only include this section when you have genuinely useful suggestions. Do not pad it with generic advice.
 
 ---
 
