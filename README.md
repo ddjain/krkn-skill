@@ -25,7 +25,7 @@ All generated from the authoritative knowledge base -- no hallucinated flags or 
 ## Installation
 
 ```bash
-npx skills add ddjain/krkn
+npx skills add ddjain/krkn-skill
 ```
 
 That's it. The skill is now available in your Claude Code sessions. Start using it:
