@@ -25,7 +25,7 @@ All generated from the authoritative knowledge base -- no hallucinated flags or 
 ## Installation
 
 ```bash
-npx skills add ddjain/krkn-skill
+npx skills add https://github.com/ddjain/krkn-skill --skills krkn-scenario-skill
 ```
 
 That's it. The skill is now available in your Claude Code sessions. Start using it:
@@ -98,7 +98,7 @@ The skill auto-pulls the latest knowledge base on every use. To update the skill
 
 ```bash
 # If installed via npx skills
-npx skills add ddjain/krkn
+npx skills add https://github.com/ddjain/krkn-skill --skills krkn-scenario
 
 # If installed via curl
 curl -o ~/.claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/SKILL.md
