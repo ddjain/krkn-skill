@@ -1,60 +1,76 @@
-# Krkn Scenario Generator - Claude Code Skill
+# Krkn Claude Code Skills
 
-A Claude Code skill that generates production-ready [Krkn](https://github.com/krkn-chaos/krkn) chaos engineering scenarios. It auto-clones the [krkn-knowledgebase](https://github.com/ddjain/krkn-knowledgebase) and pulls the latest data on every invocation.
+Claude Code skills for the [krkn-chaos](https://github.com/krkn-chaos) ecosystem -- a CNCF sandbox chaos engineering platform for Kubernetes.
 
-## What it does
+## Available Skills
 
-Type `/krkn-scenario <description>` in any Claude Code session and get:
-- Validated `krknctl` CLI commands
-- Validated `krkn-hub` Docker commands
-- Parameter tables with descriptions
-- Relevant edge cases and notes
+| Skill | Command | Description |
+|-------|---------|-------------|
+| [krkn-scenario](skills/krkn-scenario/) | `/krkn-scenario <description>` | Generate validated chaos scenario commands for krknctl and krkn-hub |
+| [krkn-pr-review](skills/krkn-pr-review/) | `/krkn-pr-review <pr-ref>` | Review PRs across krkn, krkn-hub, and krknctl with cross-repo analysis |
 
-All generated from the authoritative knowledge base -- no hallucinated flags or env vars.
+### krkn-scenario
 
-## Quick Examples
+Generates production-ready chaos engineering scenarios backed by the [krkn-knowledgebase](https://github.com/ddjain/krkn-knowledgebase). Produces validated `krknctl` CLI and `krkn-hub` Docker commands.
 
 ```
 /krkn-scenario kill etcd pods in openshift-etcd namespace
 /krkn-scenario add 200ms network latency to worker nodes for 5 minutes
 /krkn-scenario hog 4 CPU cores at 80% on nodes labeled stress-test=true
-/krkn-scenario fill PVCs to 90% in namespace my-app
-/krkn-scenario simulate zone outage in us-east-1a
+```
+
+### krkn-pr-review
+
+Reviews pull requests with language-specific analysis (Python, Shell/Dockerfile, Go) and cross-repo contract validation. Detects env.sh/krknctl-input.json drift, plugin naming violations, label regex mismatches, and more. **Suggestion-only -- never posts to GitHub.**
+
+```
+/krkn-pr-review https://github.com/krkn-chaos/krkn/pull/1297
+/krkn-pr-review krkn#1305
+/krkn-pr-review krkn-hub#330
+/krkn-pr-review krknctl#142
 ```
 
 ## Installation
 
 ```bash
-npx skills add https://github.com/ddjain/krkn-skill --skills krkn-scenario-skill
+npx skills add https://github.com/ddjain/krkn-skills
 ```
 
-That's it. The skill is now available in your Claude Code sessions. Start using it:
-
-```
-/krkn-scenario kill pods in namespace kube-system
-```
+Both skills are now available in your Claude Code sessions.
 
 <details>
 <summary>Alternative installation methods</summary>
 
-### Download to a specific project
+### Download individual skills to a project
 
 ```bash
 mkdir -p .claude/skills
-curl -o .claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/SKILL.md
+
+# Scenario generator
+curl -o .claude/skills/krkn-scenario.md \
+  https://raw.githubusercontent.com/ddjain/krkn-skills/main/skills/krkn-scenario/SKILL.md
+
+# PR reviewer
+curl -o .claude/skills/krkn-pr-review.md \
+  https://raw.githubusercontent.com/ddjain/krkn-skills/main/skills/krkn-pr-review/SKILL.md
 ```
 
 ### Global installation (available in all projects)
 
 ```bash
 mkdir -p ~/.claude/skills
-curl -o ~/.claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/SKILL.md
+
+curl -o ~/.claude/skills/krkn-scenario.md \
+  https://raw.githubusercontent.com/ddjain/krkn-skills/main/skills/krkn-scenario/SKILL.md
+
+curl -o ~/.claude/skills/krkn-pr-review.md \
+  https://raw.githubusercontent.com/ddjain/krkn-skills/main/skills/krkn-pr-review/SKILL.md
 ```
 
 ### Clone this repo
 
 ```bash
-git clone https://github.com/ddjain/krkn-skill.git
+git clone https://github.com/ddjain/krkn-skills.git
 ```
 
 Then register in your project's `.claude/settings.local.json`:
@@ -63,7 +79,10 @@ Then register in your project's `.claude/settings.local.json`:
 {
   "skills": {
     "krkn-scenario": {
-      "path": "/path/to/krkn-skill/SKILL.md"
+      "path": "/path/to/krkn-skills/skills/krkn-scenario/SKILL.md"
+    },
+    "krkn-pr-review": {
+      "path": "/path/to/krkn-skills/skills/krkn-pr-review/SKILL.md"
     }
   }
 }
@@ -71,38 +90,14 @@ Then register in your project's `.claude/settings.local.json`:
 
 </details>
 
-## How it Works
-
-1. On every invocation, the skill clones/pulls the latest [krkn-knowledgebase](https://github.com/ddjain/krkn-knowledgebase) to `~/.krkn/knowledgebase/`
-2. Matches your natural language request to one of 20 scenario types
-3. Reads the full scenario definition JSON with all parameters, validators, and mappings
-4. Generates validated commands for both `krknctl` (CLI) and `krkn-hub` (Docker)
-
-## Supported Scenarios
-
-| Category | Scenarios |
-|----------|-----------|
-| **Pod-Level** | pod-scenarios, container-scenarios |
-| **Node-Level** | node-scenarios, node-scenarios-bm, node-cpu-hog, node-memory-hog, node-io-hog |
-| **Network** | network-chaos, pod-network-chaos, node-network-filter, pod-network-filter, syn-flood |
-| **Time** | time-scenarios |
-| **Application** | application-outages |
-| **Service** | service-disruption-scenarios, service-hijacking |
-| **Storage** | pvc-scenarios |
-| **Cluster-Wide** | power-outages, zone-outages |
-| **Virtualization** | kubevirt-outage |
-
 ## Updating
-
-The skill auto-pulls the latest knowledge base on every use. To update the skill itself:
 
 ```bash
 # If installed via npx skills
-npx skills add https://github.com/ddjain/krkn-skill --skills krkn-scenario
+npx skills add https://github.com/ddjain/krkn-skills
 
-# If installed via curl
-curl -o ~/.claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/SKILL.md
+# If installed via curl -- re-run the curl commands above
 
 # If cloned
-git -C /path/to/krkn-skill pull
+git -C /path/to/krkn-skills pull
 ```
