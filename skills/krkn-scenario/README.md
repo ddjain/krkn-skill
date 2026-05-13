@@ -5,7 +5,7 @@ A Claude Code skill that generates production-ready [Krkn](https://github.com/kr
 ## Installation
 
 ```bash
-npx skills add https://github.com/ddjain/krkn-skill --skills krkn-scenario
+npx skills add https://github.com/krkn-chaos/krkn-skills --skills krkn-scenario
 ```
 
 <details>
@@ -15,14 +15,14 @@ npx skills add https://github.com/ddjain/krkn-skill --skills krkn-scenario
 
 ```bash
 mkdir -p .claude/skills
-curl -o .claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/skills/krkn-scenario/SKILL.md
+curl -o .claude/skills/krkn-scenario.md https://raw.githubusercontent.com/krkn-chaos/krkn-skills/main/skills/krkn-scenario/SKILL.md
 ```
 
 ### Global installation (available in all projects)
 
 ```bash
 mkdir -p ~/.claude/skills
-curl -o ~/.claude/skills/krkn-scenario.md https://raw.githubusercontent.com/ddjain/krkn-skill/main/skills/krkn-scenario/SKILL.md
+curl -o ~/.claude/skills/krkn-scenario.md https://raw.githubusercontent.com/krkn-chaos/krkn-skills/main/skills/krkn-scenario/SKILL.md
 ```
 
 </details>

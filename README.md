@@ -33,7 +33,7 @@ Reviews pull requests with language-specific analysis (Python, Shell/Dockerfile,
 ## Installation
 
 ```bash
-npx skills add https://github.com/ddjain/krkn-skills
+npx skills add https://github.com/krkn-chaos/krkn-skills
 ```
 
 Both skills are now available in your Claude Code sessions.
@@ -48,11 +48,11 @@ mkdir -p .claude/skills
 
 # Scenario generator
 curl -o .claude/skills/krkn-scenario.md \
-  https://raw.githubusercontent.com/ddjain/krkn-skills/main/skills/krkn-scenario/SKILL.md
+  https://raw.githubusercontent.com/krkn-chaos/krkn-skills/main/skills/krkn-scenario/SKILL.md
 
 # PR reviewer
 curl -o .claude/skills/krkn-pr-review.md \
-  https://raw.githubusercontent.com/ddjain/krkn-skills/main/skills/krkn-pr-review/SKILL.md
+  https://raw.githubusercontent.com/krkn-chaos/krkn-skills/main/skills/krkn-pr-review/SKILL.md
 ```
 
 ### Global installation (available in all projects)
@@ -61,16 +61,16 @@ curl -o .claude/skills/krkn-pr-review.md \
 mkdir -p ~/.claude/skills
 
 curl -o ~/.claude/skills/krkn-scenario.md \
-  https://raw.githubusercontent.com/ddjain/krkn-skills/main/skills/krkn-scenario/SKILL.md
+  https://raw.githubusercontent.com/krkn-chaos/krkn-skills/main/skills/krkn-scenario/SKILL.md
 
 curl -o ~/.claude/skills/krkn-pr-review.md \
-  https://raw.githubusercontent.com/ddjain/krkn-skills/main/skills/krkn-pr-review/SKILL.md
+  https://raw.githubusercontent.com/krkn-chaos/krkn-skills/main/skills/krkn-pr-review/SKILL.md
 ```
 
 ### Clone this repo
 
 ```bash
-git clone https://github.com/ddjain/krkn-skills.git
+git clone https://github.com/krkn-chaos/krkn-skills.git
 ```
 
 Then register in your project's `.claude/settings.local.json`:
@@ -94,7 +94,7 @@ Then register in your project's `.claude/settings.local.json`:
 
 ```bash
 # If installed via npx skills
-npx skills add https://github.com/ddjain/krkn-skills
+npx skills add https://github.com/krkn-chaos/krkn-skills
 
 # If installed via curl -- re-run the curl commands above
 

@@ -5,7 +5,7 @@ A Claude Code skill that reviews pull requests across the krkn-chaos ecosystem (
 ## Installation
 
 ```bash
-npx skills add https://github.com/ddjain/krkn-skills --skills krkn-pr-review
+npx skills add https://github.com/krkn-chaos/krkn-skills --skills krkn-pr-review
 ```
 
 <details>
@@ -15,14 +15,14 @@ npx skills add https://github.com/ddjain/krkn-skills --skills krkn-pr-review
 
 ```bash
 mkdir -p .claude/skills
-curl -o .claude/skills/krkn-pr-review.md https://raw.githubusercontent.com/ddjain/krkn-skills/main/skills/krkn-pr-review/SKILL.md
+curl -o .claude/skills/krkn-pr-review.md https://raw.githubusercontent.com/krkn-chaos/krkn-skills/main/skills/krkn-pr-review/SKILL.md
 ```
 
 ### Global installation (available in all projects)
 
 ```bash
 mkdir -p ~/.claude/skills
-curl -o ~/.claude/skills/krkn-pr-review.md https://raw.githubusercontent.com/ddjain/krkn-skills/main/skills/krkn-pr-review/SKILL.md
+curl -o ~/.claude/skills/krkn-pr-review.md https://raw.githubusercontent.com/krkn-chaos/krkn-skills/main/skills/krkn-pr-review/SKILL.md
 ```
 
 </details>
